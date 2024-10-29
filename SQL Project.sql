@@ -1,0 +1,89 @@
+CREATE DATABASE Hotel
+use Hotel
+
+
+CREATE TABLE Hotel (
+    HID int IDENTITY PRIMARY KEY,
+    HName NVARCHAR(100) NOT NULL UNIQUE,
+    HLocation NVARCHAR(100) NOT NULL,
+    Hphone NVARCHAR(20) NOT NULL,
+    Rating DECIMAL(2,1)
+	CONSTRAINT chk_rating CHECK (Rating BETWEEN 1 AND 5)    
+)
+
+
+CREATE TABLE Rooms (
+    RID int IDENTITY PRIMARY KEY,
+    RNum NVARCHAR(10) NOT NULL UNIQUE,
+	HID int NOT NULL,
+    RType NVARCHAR(20) CHECK (RType IN ('Single', 'Double', 'Suite')),
+    Price DECIMAL(10, 2) CHECK (Price > 0),
+    Rstatus BIT DEFAULT 1,
+    FOREIGN KEY (HID) REFERENCES Hotel(HID)
+	   ON DELETE CASCADE ON UPDATE CASCADE,
+    UNIQUE (HID, RNum)
+)
+
+
+CREATE TABLE Guests (
+    GID int IDENTITY PRIMARY KEY,
+    GName NVARCHAR(100),
+    Gphone NVARCHAR(20),
+    IDProof NVARCHAR(50) NOT NULL,
+    --IDProofNumber NVARCHAR(50) NOT NULL,
+    GEmail NVARCHAR(100) NOT NULL UNIQUE
+)
+
+
+CREATE TABLE Bookings (
+    BID int IDENTITY PRIMARY KEY,
+    BDate DATE NOT NULL,
+	GID int NOT NULL,
+    RID int NOT NULL,
+    CheckIn DATE NOT NULL,
+    CheckOut DATE NOT NULL CHECK (CheckIn <= CheckOut),
+    BStatus NVARCHAR(20) DEFAULT 'Pending' CHECK (BStatus IN ('Pending', 'Confirmed', 'Canceled', 'Check-in', 'Check-out')),
+    TotalCost DECIMAL(10, 2),
+    FOREIGN KEY (GID) REFERENCES Guests(GID) 
+        ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (RID) REFERENCES Rooms(RID) 
+        ON DELETE CASCADE ON UPDATE CASCADE
+       
+)
+
+
+CREATE TABLE Payments (
+    PID int IDENTITY PRIMARY KEY,
+    PDate DATE NOT NULL,
+	BID int NOT NULL,
+    Amount DECIMAL(10, 2) NOT NULL CHECK (Amount > 0),
+    Method NVARCHAR(50),
+    FOREIGN KEY (BID) REFERENCES Bookings(BID) 
+    ON DELETE CASCADE ON UPDATE CASCADE   
+)
+
+
+CREATE TABLE Staff (
+    StID int IDENTITY PRIMARY KEY,
+    StName NVARCHAR(100),
+	HID int NOT NULL,
+    StPosition NVARCHAR(50),
+    Stphone NVARCHAR(20),
+    FOREIGN KEY (HID) REFERENCES Hotel(HID) 
+    ON DELETE CASCADE ON UPDATE CASCADE    
+)
+
+
+CREATE TABLE Reviews (
+    RID int IDENTITY PRIMARY KEY,
+    HID int NOT NULL,
+    GID int NOT NULL,
+    RVDate DATE NOT NULL,
+    RVRating INT CHECK (RVRating BETWEEN 1 and 5),
+    Comments NVARCHAR(255) DEFAULT 'No comments',
+    FOREIGN KEY (HID) REFERENCES Hotel(HID) 
+        ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (GID) REFERENCES Guests(GID) 
+        ON DELETE CASCADE ON UPDATE CASCADE 
+        
+)
